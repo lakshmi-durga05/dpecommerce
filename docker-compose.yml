@@ -1,0 +1,42 @@
+version: "3.9"
+services:
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    environment:
+      - DB_URL=mongodb://mongo:27017/amazonclone
+      # Add other envs as needed
+      # - REACT_APP_API_BASE_URL=http://localhost:8000/api
+      # - WHATSAPP_TOKEN=...
+      # - WHATSAPP_PHONE_ID=...
+      # - SMTP_HOST=...
+      # - SMTP_PORT=587
+      # - SMTP_USER=...
+      # - SMTP_PASS=...
+    depends_on:
+      - mongo
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.client
+    depends_on:
+      - server
+    ports:
+      - "3001:80"
+    restart: unless-stopped
+
+volumes:
+  mongo_data:

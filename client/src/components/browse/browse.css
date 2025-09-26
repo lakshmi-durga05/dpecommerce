@@ -1,0 +1,12 @@
+.browse { padding: 20px; }
+.browse .browse-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+.browse .browse-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.browse .browse-card { background: #fff; border: 1px solid #eee; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; }
+.browse .browse-card .img-wrap { display: block; width: 100%; height: 200px; overflow: hidden; border-radius: 4px; border: 1px solid #f0f0f0; background: #fafafa; }
+.browse .browse-card img { width: 100%; height: 100%; object-fit: contain; }
+.browse .browse-card .info { margin: 8px 0; }
+.browse .browse-card .name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #111; text-decoration: none; font-size: 14px; font-weight: 600; }
+.browse .browse-card .price { color: #B12704; font-weight: 700; margin-top: 4px; }
+.browse .browse-card .actions { margin-top: auto; display: flex; gap: 8px; }
+.browse .browse-card .actions button { flex: 1; background: linear-gradient(to bottom, #FFD875 40%, #FFC42D 40%); border: 1px solid #E6A400; height: 32px; border-radius: 4px; font-weight: 600; cursor: pointer; }
+.browse .browse-card .actions .view { flex: 1; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #ddd; height: 32px; border-radius: 4px; text-decoration: none; color: #111; font-weight: 600; }

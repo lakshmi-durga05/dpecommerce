@@ -1,0 +1,13 @@
+# Global docker ignore for server build context
+node_modules
+client/node_modules
+**/.cache
+**/build
+**/dist
+.git
+.gitignore
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+.env
