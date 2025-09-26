@@ -11,7 +11,6 @@ const SalesOrder = require('../models/erp/SalesOrder');
 const Invoice = require('../models/erp/Invoice');
 const TaxConfig = require('../models/erp/TaxConfig');
 const Notification = require('../models/erp/Notification');
-const Invoice = require('../models/erp/Invoice');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
 
@@ -120,13 +119,11 @@ router.post('/tax-config', authenticate, authorize('admin'), async (req, res) =>
 
 // -------- Forecasting (basic) --------
 router.get('/forecast/low-stock', authenticate, authorize('admin'), async (req, res) => {
-  // Simple rule-based: items below reorderPoint or will be below after lead time
   const items = await InventoryItem.find();
   const low = items.filter(i => (i.currentStock || 0) <= (i.reorderPoint || 0));
   res.json({ items: low });
 });
 
-// Run forecast and return items predicted to be short before lead time
 router.get('/forecast/shortage', authenticate, authorize('admin'), async (req, res) => {
   try {
     const result = await runForecastAndNotify(false);
@@ -134,7 +131,6 @@ router.get('/forecast/shortage', authenticate, authorize('admin'), async (req, r
   } catch (e) { console.log(e); res.status(500).json({ error: 'forecast failed' }); }
 });
 
-// Trigger forecast and create notifications (idempotent-ish)
 router.post('/forecast/run', authenticate, authorize('admin'), async (req, res) => {
   try {
     const result = await runForecastAndNotify(true);
@@ -165,9 +161,8 @@ async function runForecastAndNotify(createNotifs = false) {
   const now = new Date();
   const since = new Date(now.getTime() - daysWindow * 24 * 60 * 60 * 1000);
 
-  // Aggregate sold qty per productId from Invoices in window
   const invoices = await Invoice.find({ createdAt: { $gte: since } });
-  const soldMap = new Map(); // productId -> qty
+  const soldMap = new Map();
   invoices.forEach(inv => {
     (inv.items || []).forEach(it => {
       const pid = Number(it.productId || 0);
@@ -182,16 +177,15 @@ async function runForecastAndNotify(createNotifs = false) {
   for (const it of items) {
     const sold = soldMap.get(Number(it.productId)) || 0;
     const daily = sold / daysWindow;
-    if (daily <= 0) continue; // no sales, skip
+    if (daily <= 0) continue;
     const daysLeft = (it.currentStock || 0) / daily;
-    const threshold = (it.leadTimeDays || 7) + 2; // buffer X=2 days
+    const threshold = (it.leadTimeDays || 7) + 2;
     if (daysLeft <= threshold) {
       const risk = { sku: it.sku, productId: it.productId, name: it.name, currentStock: it.currentStock, dailyRate: Number(daily.toFixed(2)), daysLeft: Number(daysLeft.toFixed(1)), leadTimeDays: it.leadTimeDays, vendorId: it.vendorId };
       risks.push(risk);
       if (createNotifs) {
         const msg = `Forecast shortage for ${it.name} (SKU ${it.sku}): ~${risk.daysLeft} days left at ${risk.dailyRate}/day. Lead time: ${it.leadTimeDays} days.`;
         const n = await Notification.create({ vendorId: it.vendorId || null, sku: it.sku, productId: it.productId, name: it.name, type: 'forecast_shortage', message: msg });
-        // Send email if vendor has email and transport configured
         if (transporter && it.vendorId) {
           try {
             const vendor = await Vendor.findById(it.vendorId);
@@ -205,7 +199,6 @@ async function runForecastAndNotify(createNotifs = false) {
             }
           } catch (e) { console.log('mail failed', e); }
         }
-        // Send WhatsApp if configured
         try {
           const vendor = it.vendorId ? await Vendor.findById(it.vendorId) : null;
           if (vendor && vendor.phone) {
@@ -238,7 +231,6 @@ async function sendWhatsapp(phoneNumber, text) {
     const token = process.env.WHATSAPP_TOKEN;
     const phoneId = process.env.WHATSAPP_PHONE_ID;
     if (!token || !phoneId) return;
-    // phoneNumber must be in international format, e.g., 919876543210
     await axios.post(`https://graph.facebook.com/v17.0/${phoneId}/messages`, {
       messaging_product: 'whatsapp',
       to: String(phoneNumber).replace(/\D/g,''),
