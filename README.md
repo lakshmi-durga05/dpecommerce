@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # <div align="center">lakshmiworld</div>
 
 ### <div align="center">Enterprise-Grade E-commerce + ERP System</div><br>
@@ -57,3 +58,6 @@ Optionally set `client/.env`:
 REACT_APP_API_BASE_URL=http://localhost:8000/api
 ```
 
+=======
+# dpecommerce
+>>>>>>> 721511a4a5574410db0721a1d835eaea10a0587f
